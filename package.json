@@ -26,5 +26,8 @@
   "devDependencies": {
     "@types/node": "^18.15.11",
     "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "bitcoinjs-lib": "^6.1.0"
   }
 }
