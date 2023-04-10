@@ -1,0 +1,30 @@
+{
+  "name": "privatetx",
+  "version": "1.0.0",
+  "description": "A chain Analysis library",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "scripts": {
+    "build": "npm run clean && tsc -p ./tsconfig.json",
+    "clean": "rm -r src",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ismaelsadeeq/privateTx.git"
+  },
+  "keywords": [
+    "chain",
+    "analysis"
+  ],
+  "author": "Abubakar Sadiq Ismail",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ismaelsadeeq/privateTx/issues"
+  },
+  "homepage": "https://github.com/ismaelsadeeq/privateTx#readme",
+  "devDependencies": {
+    "@types/node": "^18.15.11",
+    "typescript": "^5.0.4"
+  }
+}
