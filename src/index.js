@@ -1,5 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hello = void 0;
-var privateTx_1 = require("./lib/privateTx");
-Object.defineProperty(exports, "hello", { enumerable: true, get: function () { return privateTx_1.hello; } });
+exports.checkAddressReuse = void 0;
+var address_reuse_1 = require("./lib/address-reuse");
+Object.defineProperty(exports, "checkAddressReuse", { enumerable: true, get: function () { return address_reuse_1.checkAddressReuse; } });

@@ -1,1 +1,1 @@
-export { hello } from './lib/privateTx';
+export { checkAddressReuse } from './lib/address-reuse';
