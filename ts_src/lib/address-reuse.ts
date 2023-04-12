@@ -5,12 +5,12 @@ import { Buffer } from 'buffer';
 
 // Define Check Address Reuse response
 export interface AddressReuseResponse {
-  status:boolean,
-  data:reusedInsAndOuts[]
+  status: boolean,
+  data: reusedInsAndOuts[]
 }
 export interface reusedInsAndOuts {
-  vin:number,
-  vout:number
+  vin: number,
+  vout: number
 }
 
 
@@ -20,13 +20,13 @@ export const checkAddressReuse  = (psbtBase64:string):AddressReuseResponse =>{
   const psbt: bitcoin.Psbt = bitcoin.Psbt.fromBuffer(psbtBuffer);
 
   // Get the transactions inputs addresses
-  const inputs:PsbtInput[] = psbt.data.inputs;
+  const inputs: PsbtInput[] = psbt.data.inputs;
   let inputAddresses = [];
 
-  for(let i:number = 0;i< inputs.length ; i++){
+  for(let i = 0; i< inputs.length; i++){
     
     // vout is the UTXO index of the input
-    let vout:number = psbt.txInputs[i].index; 
+    let vout: number = psbt.txInputs[i].index; 
 
     //  Get the hex representation of the serialized input transaction
     let serializedTx = inputs[i].nonWitnessUtxo?.toString('hex');
@@ -35,7 +35,7 @@ export const checkAddressReuse  = (psbtBase64:string):AddressReuseResponse =>{
     let tx = serializedTx ? bitcoin.Transaction.fromHex(serializedTx) : undefined ;
 
     // convert the scriptpubkey of the input UTXO to an address
-    let address:string = tx? bitcoin.address.fromOutputScript(tx.outs[vout].script) : "";
+    let address: string = tx? bitcoin.address.fromOutputScript(tx.outs[vout].script) : "";
     inputAddresses.push(address);
   }
 
@@ -43,26 +43,26 @@ export const checkAddressReuse  = (psbtBase64:string):AddressReuseResponse =>{
   const outputs = psbt.txOutputs;
   let outputAddresses = [];
 
-  for(let i = 0;i< outputs.length;i++){
+  for(let i = 0; i< outputs.length; i++){
     // convert the scriptpubkey of the output to an address
     let address = bitcoin.address.fromOutputScript(outputs[i].script);
     outputAddresses.push(address)
   }
 
   let response:AddressReuseResponse = {
-    status:false,
-    data:[]
+    status: false,
+    data: []
   }
 
   // check for address reuse
-  for (let i:number = 0; i < inputAddresses.length;i++){
+  for (let i = 0; i< inputAddresses.length; i++){
 
-    for (let j = 0;j < outputAddresses.length;j++){
+    for (let j = 0; j< outputAddresses.length; j++){
 
       if (inputAddresses[i] == outputAddresses[j]) {
 
         response.status = true;
-        let reuse:reusedInsAndOuts = {
+        let reuse: reusedInsAndOuts = {
           vin:i,
           vout:j
         }
