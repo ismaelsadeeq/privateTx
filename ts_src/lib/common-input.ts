@@ -12,12 +12,11 @@ export const commonInputs = (psbtBase64:string):boolean =>{
   const psbtBuffer: Buffer = Buffer.from(psbtBase64, 'base64');
   const psbt: bitcoin.Psbt = bitcoin.Psbt.fromBuffer(psbtBuffer);
 
-
   // Get the transactions inputs
   const inputs: PsbtInput[] = psbt.data.inputs;
 
   // Get the transactions outputs 
-  const outputs:bitcoin.PsbtTxOutput[] = psbt.txOutputs
+  const outputs:bitcoin.PsbtTxOutput[] = psbt.txOutputs;
 
   //  Edge cases
   if (outputs.length === 1 || inputs.length === 1) {

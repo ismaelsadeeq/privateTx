@@ -23,6 +23,10 @@ export const checkAddressReuse  = (psbtBase64:string):AddressReuseResponse =>{
   const inputs: PsbtInput[] = psbt.data.inputs;
   let inputAddresses = [];
 
+  // Get the transactions outputs addresses
+  const outputs = psbt.txOutputs;
+  let outputAddresses = [];
+
   for(let i = 0; i< inputs.length; i++){
     
     // vout is the UTXO index of the input
@@ -38,10 +42,6 @@ export const checkAddressReuse  = (psbtBase64:string):AddressReuseResponse =>{
     let address: string = tx? bitcoin.address.fromOutputScript(tx.outs[vout].script) : "";
     inputAddresses.push(address);
   }
-
-  // Get the transactions outputs addresses
-  const outputs = psbt.txOutputs;
-  let outputAddresses = [];
 
   for(let i = 0; i< outputs.length; i++){
     // convert the scriptpubkey of the output to an address
