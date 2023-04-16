@@ -7,7 +7,7 @@
   "scripts": {
     "build": "npm run clean && tsc -p ./tsconfig.json",
     "clean": "rm -r src",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --require ts-node/register test/**/*.spec.ts"
   },
   "repository": {
     "type": "git",
@@ -24,7 +24,10 @@
   },
   "homepage": "https://github.com/ismaelsadeeq/privateTx#readme",
   "devDependencies": {
+    "@types/mocha": "^10.0.1",
     "@types/node": "^18.15.11",
+    "mocha": "^10.2.0",
+    "ts-node": "^10.9.1",
     "typescript": "^5.0.4"
   },
   "dependencies": {
