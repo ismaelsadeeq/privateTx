@@ -1,8 +1,9 @@
 import * as bitcoin from 'bitcoinjs-lib';
-import { Buffer } from 'buffer';
 import { peelingTransaction } from './peeling';
 import { PsbtInput } from 'bip174/src/lib/interfaces';
 import { checkAddressReuse } from './address-reuse';
+import { decodePsbt } from '../common/decode_psbt';
+import { getAddressType } from '../common/get_address_type';
 
 export const SATOSHI = 100000000;
 
@@ -10,20 +11,29 @@ const NO_PAYMENT_OUTPUTS = 0;
 
 interface DetectChangeResponse {
   status: boolean;
-  heuristic: string;
-  changeOutputIndices: number[];
+  heuristic?: string;
+  changeOutputIndices: number[],
+  error?:string
 }
 
 export const detectChange = (psbtBase64:string):DetectChangeResponse=>{
 
   const response:DetectChangeResponse = {
     status: false,
-    heuristic: "",
     changeOutputIndices: []
   };
 
-  const psbtBuffer: Buffer = Buffer.from(psbtBase64, 'base64');
-  const psbt: bitcoin.Psbt = bitcoin.Psbt.fromBuffer(psbtBuffer);
+ // Decode the base64-encoded PSBT
+ const decodedPsbt = decodePsbt(psbtBase64);
+ // Error check  
+ if (!decodedPsbt.status || !decodedPsbt.data) {
+   return {
+     status: false,
+     changeOutputIndices: [],
+     error: decodedPsbt.error,
+   };
+ }
+ const psbt: bitcoin.Psbt = decodedPsbt.data!;
 
   const outputs = psbt.txOutputs;
 
@@ -45,7 +55,7 @@ export const detectChange = (psbtBase64:string):DetectChangeResponse=>{
     return sameScriptTypeOutputs;
   }
 
-  // Detecct change outputs from output value that is greater than all the inputs.
+  // Detect change outputs from output value that is greater than all the inputs.
   const outputGreaterThanAllInputs = getOutputGreaterThanAllInputs(psbt);
   if(outputGreaterThanAllInputs.status) {
     return outputGreaterThanAllInputs;
@@ -71,7 +81,6 @@ export const getChangeFromReusedAddresses = (psbtBase64:string):DetectChangeResp
   // Initialize a new DetectChangeResponse object with default values
   let response:DetectChangeResponse = {
     status:false,
-    heuristic:"",
     changeOutputIndices: []
   }
 
@@ -105,7 +114,6 @@ const getChangeOutputsFromSameScriptType = (psbt: bitcoin.Psbt):DetectChangeResp
 
   let response:DetectChangeResponse = {
     status:false,
-    heuristic:"",
     changeOutputIndices: []
   }
 
@@ -141,10 +149,10 @@ const getChangeOutputsFromSameScriptType = (psbt: bitcoin.Psbt):DetectChangeResp
   // Loop through all the input addresses to find type
   for(const address of inputAddresses) {
     const currentInputAddressType = getAddressType(address);
-    if (inputsAddressType != "" && inputsAddressType != currentInputAddressType) {
+    if (inputsAddressType != "" && inputsAddressType != currentInputAddressType.data) {
       return response;
     }
-    inputsAddressType = currentInputAddressType;
+    inputsAddressType = currentInputAddressType.data!;
   }
 
   // Initialize change and payment outputs
@@ -156,7 +164,7 @@ const getChangeOutputsFromSameScriptType = (psbt: bitcoin.Psbt):DetectChangeResp
 
     const outputAddressType = getAddressType(address);
     // If the address type is the same if the input address type
-    if(inputsAddressType == outputAddressType){
+    if(inputsAddressType == outputAddressType.data){
        // it is as a change output
       changeOutputs.push(address);
     }else{
@@ -194,7 +202,6 @@ const getOutputGreaterThanAllInputs = (psbt: bitcoin.Psbt):DetectChangeResponse 
 
   let response:DetectChangeResponse = {
     status:false,
-    heuristic:"",
     changeOutputIndices: []
   }
 
@@ -275,7 +282,6 @@ const getNonRoundValueOutputs = (psbt: bitcoin.Psbt):DetectChangeResponse=>{
   if(roundOutputs.size === NO_OUTPUTS) {
     return {
       status: false,
-      heuristic: "",
       changeOutputIndices: [],
     };
   }
@@ -304,7 +310,6 @@ const getlargestOutput = (psbt: bitcoin.Psbt):DetectChangeResponse =>{
   if (outputs.length > 2 ){
     return {
       status: false,
-      heuristic: "",
       changeOutputIndices: []
     };
   }
@@ -319,17 +324,3 @@ const getlargestOutput = (psbt: bitcoin.Psbt):DetectChangeResponse =>{
   }
 }
 
-
-// Helper function
-const getAddressType = (address: string): string => {
-  try {
-    // Try decoding the address with base58check
-    const addressObj = bitcoin.address.fromBase58Check(address);
-    // Assign the address type to the version string
-    return addressObj.version.toString();
-  } catch (err) {
-    // If decoding with base58check fails, it may be a bech32 address
-    const addressObj = bitcoin.address.fromBech32(address)
-    return `${addressObj.prefix}${addressObj.version}`;
-  }
-}

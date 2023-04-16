@@ -1,21 +1,19 @@
 import * as bitcoin from 'bitcoinjs-lib';
 import { PsbtInput } from 'bip174/src/lib/interfaces';
-import { Buffer } from 'buffer';
-
-function numberSort(a:number, b:number) {
-  return a - b;
-}
+import { decodePsbt } from '../common/decode_psbt';
 
 export const commonInputs = (psbtBase64:string):boolean =>{
 
   // Decode the base64-encoded PSBT
-  const psbtBuffer: Buffer = Buffer.from(psbtBase64, 'base64');
-  const psbt: bitcoin.Psbt = bitcoin.Psbt.fromBuffer(psbtBuffer);
+  const decodedPsbt = decodePsbt(psbtBase64);
+  //Error check  
+  if (!decodedPsbt.status || !decodedPsbt.data) return false;
 
-  // Get the transactions inputs
+  const psbt: bitcoin.Psbt = decodedPsbt.data!;
+  // Get the transaction's inputs
   const inputs: PsbtInput[] = psbt.data.inputs;
 
-  // Get the transactions outputs 
+  // Get the transaction's outputs 
   const outputs:bitcoin.PsbtTxOutput[] = psbt.txOutputs;
 
   //  Edge cases
@@ -23,12 +21,12 @@ export const commonInputs = (psbtBase64:string):boolean =>{
     return true;
   }
 
+  // Get the amount of the inputs
   const inputAmounts: number[] = [];
-  const outputAmounts: number[] = [];
 
   for(let i = 0; i< inputs.length; i++){
 
-    // vout is the UTXO index of the input
+    // `vout` is the UTXO index of the input
     let vout: number = psbt.txInputs[i].index; 
 
     //  Get the hex representation of the serialized input transaction
@@ -41,21 +39,22 @@ export const commonInputs = (psbtBase64:string):boolean =>{
     }
   }
 
-  for(let i = 0; i< outputs.length; i++) {
-    outputAmounts.push(outputs[i].value);
-  }
+  // Get the amount of the outputs
+  const outputAmounts = outputs.map(output => output.value)
 
-  outputAmounts.sort(numberSort);
-  inputAmounts.sort(numberSort);
+  // Sort the inputs and outputs in ascending order
+  outputAmounts.sort((a, b) => a - b);
+  inputAmounts.sort((a, b) => a - b);
 
   let result = true;
   for(let i = 0; i< outputAmounts.length; i++) {
 
     for(let j = 0; j< inputAmounts.length; j++){
 
-      // check if the output amount is less than or equal to an input 
-      // If yes then the input is enough to spend the output
-      // other inputs might not be from same wallet
+    // Check if the output amount is less than or equal to the input.
+    // If yes, then the input is enough to spend the output.
+    // Other inputs might not be from the same wallet. If it's greater
+    // than the input, then the output is likely to be from the same wallet.
       if ( outputAmounts[i] <= inputAmounts[j]) {
 
         result = false;

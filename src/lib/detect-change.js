@@ -2,19 +2,28 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getChangeFromReusedAddresses = exports.detectChange = exports.SATOSHI = void 0;
 const bitcoin = require("bitcoinjs-lib");
-const buffer_1 = require("buffer");
 const peeling_1 = require("./peeling");
 const address_reuse_1 = require("./address-reuse");
+const decode_psbt_1 = require("../common/decode_psbt");
+const get_address_type_1 = require("../common/get_address_type");
 exports.SATOSHI = 100000000;
 const NO_PAYMENT_OUTPUTS = 0;
 const detectChange = (psbtBase64) => {
     const response = {
         status: false,
-        heuristic: "",
         changeOutputIndices: []
     };
-    const psbtBuffer = buffer_1.Buffer.from(psbtBase64, 'base64');
-    const psbt = bitcoin.Psbt.fromBuffer(psbtBuffer);
+    // Decode the base64-encoded PSBT
+    const decodedPsbt = (0, decode_psbt_1.decodePsbt)(psbtBase64);
+    // Error check  
+    if (!decodedPsbt.status || !decodedPsbt.data) {
+        return {
+            status: false,
+            changeOutputIndices: [],
+            error: decodedPsbt.error,
+        };
+    }
+    const psbt = decodedPsbt.data;
     const outputs = psbt.txOutputs;
     // Edge case
     if (outputs.length === 1) {
@@ -30,7 +39,7 @@ const detectChange = (psbtBase64) => {
     if (sameScriptTypeOutputs.status) {
         return sameScriptTypeOutputs;
     }
-    // Detecct change outputs from output value that is greater than all the inputs.
+    // Detect change outputs from output value that is greater than all the inputs.
     const outputGreaterThanAllInputs = getOutputGreaterThanAllInputs(psbt);
     if (outputGreaterThanAllInputs.status) {
         return outputGreaterThanAllInputs;
@@ -52,7 +61,6 @@ const getChangeFromReusedAddresses = (psbtBase64) => {
     // Initialize a new DetectChangeResponse object with default values
     let response = {
         status: false,
-        heuristic: "",
         changeOutputIndices: []
     };
     // Detect change from address reuse by calling the checkAddressReuse function
@@ -78,7 +86,6 @@ exports.getChangeFromReusedAddresses = getChangeFromReusedAddresses;
 const getChangeOutputsFromSameScriptType = (psbt) => {
     let response = {
         status: false,
-        heuristic: "",
         changeOutputIndices: []
     };
     // Get the transactions inputs addresses
@@ -104,20 +111,20 @@ const getChangeOutputsFromSameScriptType = (psbt) => {
     let inputsAddressType = "";
     // Loop through all the input addresses to find type
     for (const address of inputAddresses) {
-        const currentInputAddressType = getAddressType(address);
-        if (inputsAddressType != "" && inputsAddressType != currentInputAddressType) {
+        const currentInputAddressType = (0, get_address_type_1.getAddressType)(address);
+        if (inputsAddressType != "" && inputsAddressType != currentInputAddressType.data) {
             return response;
         }
-        inputsAddressType = currentInputAddressType;
+        inputsAddressType = currentInputAddressType.data;
     }
     // Initialize change and payment outputs
     let changeOutputs = [];
     let paymentOutputs = [];
     // Map through all the outputs
     for (const address of outputAddresses) {
-        const outputAddressType = getAddressType(address);
+        const outputAddressType = (0, get_address_type_1.getAddressType)(address);
         // If the address type is the same if the input address type
-        if (inputsAddressType == outputAddressType) {
+        if (inputsAddressType == outputAddressType.data) {
             // it is as a change output
             changeOutputs.push(address);
         }
@@ -147,7 +154,6 @@ const getChangeOutputsFromSameScriptType = (psbt) => {
 const getOutputGreaterThanAllInputs = (psbt) => {
     let response = {
         status: false,
-        heuristic: "",
         changeOutputIndices: []
     };
     // Get the transactions inputs addresses
@@ -206,7 +212,6 @@ const getNonRoundValueOutputs = (psbt) => {
     if (roundOutputs.size === NO_OUTPUTS) {
         return {
             status: false,
-            heuristic: "",
             changeOutputIndices: [],
         };
     }
@@ -229,7 +234,6 @@ const getlargestOutput = (psbt) => {
     if (outputs.length > 2) {
         return {
             status: false,
-            heuristic: "",
             changeOutputIndices: []
         };
     }
@@ -242,18 +246,4 @@ const getlargestOutput = (psbt) => {
         heuristic: "Largest output",
         changeOutputIndices
     };
-};
-// Helper function
-const getAddressType = (address) => {
-    try {
-        // Try decoding the address with base58check
-        const addressObj = bitcoin.address.fromBase58Check(address);
-        // Assign the address type to the version string
-        return addressObj.version.toString();
-    }
-    catch (err) {
-        // If decoding with base58check fails, it may be a bech32 address
-        const addressObj = bitcoin.address.fromBech32(address);
-        return `${addressObj.prefix}${addressObj.version}`;
-    }
 };

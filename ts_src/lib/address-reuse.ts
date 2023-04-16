@@ -1,75 +1,83 @@
 import * as bitcoin from 'bitcoinjs-lib';
 import { PsbtInput } from 'bip174/src/lib/interfaces';
-import { Buffer } from 'buffer';
-
+import { decodePsbt } from '../common/decode_psbt';
 
 // Define Check Address Reuse response
 export interface AddressReuseResponse {
   status: boolean,
-  data: reusedInsAndOuts[]
+  data: ReusedInputsAndOutPuts[]
+  error?:string
 }
-export interface reusedInsAndOuts {
+export interface ReusedInputsAndOutPuts {
   vin: number,
   vout: number
 }
 
-
 export const checkAddressReuse  = (psbtBase64:string):AddressReuseResponse =>{
+
+  const reusedAddressAndInputs:Array<ReusedInputsAndOutPuts> = []
+
   // Decode the base64-encoded PSBT
-  const psbtBuffer: Buffer = Buffer.from(psbtBase64, 'base64');
-  const psbt: bitcoin.Psbt = bitcoin.Psbt.fromBuffer(psbtBuffer);
 
-  // Get the transactions inputs addresses
+  // Error check
+  const decodedPsbt = decodePsbt(psbtBase64);
+  if (!decodedPsbt.status || !decodedPsbt.data) {
+    return {
+      status: false,
+      data: [],
+      error: decodedPsbt.error,
+    };
+  }
+  const psbt: bitcoin.Psbt = decodedPsbt.data!;
+
+  // Get the transaction's inputs address
   const inputs: PsbtInput[] = psbt.data.inputs;
-  let inputAddresses = [];
-
-  // Get the transactions outputs addresses
-  const outputs = psbt.txOutputs;
-  let outputAddresses = [];
+  const inputsAddresses = [];
 
   for(let i = 0; i< inputs.length; i++){
-    
-    // vout is the UTXO index of the input
-    let vout: number = psbt.txInputs[i].index; 
+    // `vout` is the UTXO index of the input
+    const vout = psbt.txInputs[i].index; 
 
-    //  Get the hex representation of the serialized input transaction
-    let serializedTx = inputs[i].nonWitnessUtxo?.toString('hex');
+    // Get the hex representation of the serialized input transaction
+    const serializedTx = inputs[i].nonWitnessUtxo?.toString('hex');
 
     // Decode the serialied transaction
-    let tx = serializedTx ? bitcoin.Transaction.fromHex(serializedTx) : undefined ;
+    const tx = serializedTx ? bitcoin.Transaction.fromHex(serializedTx) : undefined ;
 
-    // convert the scriptpubkey of the input UTXO to an address
-    let address: string = tx? bitcoin.address.fromOutputScript(tx.outs[vout].script) : "";
-    inputAddresses.push(address);
+    // Convert the scriptPubKey of the input UTXO to an address
+    const address: string = tx? bitcoin.address.fromOutputScript(tx.outs[vout].script) : "";
+    inputsAddresses.push(address);
   }
 
-  for(let i = 0; i< outputs.length; i++){
-    // convert the scriptpubkey of the output to an address
-    let address = bitcoin.address.fromOutputScript(outputs[i].script);
-    outputAddresses.push(address)
-  }
+  // Get the transaction's outputs address
+  const outputs = psbt.txOutputs;
 
-  let response:AddressReuseResponse = {
-    status: false,
-    data: []
-  }
+  const outputsAddress = outputs.map(output => {
+    return bitcoin.address.fromOutputScript(output.script)
+  })
 
-  // check for address reuse
-  for (let i = 0; i< inputAddresses.length; i++){
+  // Check for address reuse
+  for (let i = 0; i< inputsAddresses.length; i++){
 
-    for (let j = 0; j< outputAddresses.length; j++){
+    const inputAddress = inputsAddresses[i]
 
-      if (inputAddresses[i] == outputAddresses[j]) {
+    // Compare input address with all output addresses to check for a match
+    for (let j = 0; j< outputsAddress.length; j++){
 
-        response.status = true;
-        let reuse: reusedInsAndOuts = {
-          vin:i,
-          vout:j
+      if (inputAddress == outputsAddress[j]) {
+
+        let reuse: ReusedInputsAndOutPuts = {
+          vin:i, // Index of the input
+          vout:j // Index of the output
         }
 
-        response.data.push(reuse)
+        reusedAddressAndInputs.push(reuse)
       }
     }
   }
-  return response;
+
+  return {
+    status: reusedAddressAndInputs.length > 0,
+    data:reusedAddressAndInputs
+  };
 }
