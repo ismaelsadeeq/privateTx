@@ -1,8 +1,9 @@
 export interface AddressReuseResponse {
     status: boolean;
-    data: reusedInsAndOuts[];
+    data: ReusedInputsAndOutPuts[];
+    error?: string;
 }
-export interface reusedInsAndOuts {
+export interface ReusedInputsAndOutPuts {
     vin: number;
     vout: number;
 }

@@ -1,66 +1,70 @@
 import * as bitcoin from 'bitcoinjs-lib';
-import { Buffer } from 'buffer';
+import { decodePsbt } from '../common/decode_psbt';
 
-
-export interface peelingTransactionResponse {
-  status: boolean
-  index: number
-}
-function numberSort(a:number, b:number) {
-  return a - b;
+export interface PeelingTransactionResponse {
+  status: boolean,
+  index: number,
+  error?:string
 }
 
-export const peelingTransaction = (psbtBase64:string):peelingTransactionResponse =>{
-
-  // Decode the base64-encoded PSBT
-  const psbtBuffer: Buffer = Buffer.from(psbtBase64, 'base64');
-  const psbt: bitcoin.Psbt = bitcoin.Psbt.fromBuffer(psbtBuffer);
-
-
-  // Get the transactions outputs 
-  const outputs:bitcoin.PsbtTxOutput[] = psbt.txOutputs
-
-
-  const outputAmounts: number[] = [];
-
-
-  for(let i = 0; i< outputs.length; i++) {
-    outputAmounts.push(outputs[i].value);
-  }
-
-  let response: peelingTransactionResponse = {
-    status:false,
+export const peelingTransaction = (psbtBase64: string): PeelingTransactionResponse => {
+  // Initialize the response object with default values
+  const response: PeelingTransactionResponse = {
+    status: false,
     index: -1
+  };
+
+  // DecodePSBT
+  const decodedPsbt = decodePsbt(psbtBase64);
+  // Error check  
+  if(!decodedPsbt.status && ! !decodedPsbt.data) {
+    response.error = decodedPsbt.error;
+    return response;
   }
-  // Edge case
-  if (outputAmounts.length === 1 ){
+  const psbt = decodedPsbt.data!;
+
+  // Extract the outputs from the PSBT
+  const outputs: bitcoin.PsbtTxOutput[] = psbt.txOutputs;
+
+  // Get the amounts of each output
+  const outputAmounts = outputs.map(output => output.value);
+
+  // If there's only one output, then we can't peel it, so return the default response
+  if (outputAmounts.length === 1) {
     return response;
   }
 
-  outputAmounts.sort(numberSort);
+  // Sort the output amounts in ascending order
+  outputAmounts.sort((a, b) => a - b);
 
-  let largestAmount = outputAmounts[outputAmounts.length -1];
-  let secondLargestAmount = outputAmounts[outputAmounts.length -2];
+  // Get the two largest output amounts
+  const largestAmount = outputAmounts[outputAmounts.length - 1];
+  const secondLargestAmount = outputAmounts[outputAmounts.length - 2];
 
-  let difference = largestAmount - secondLargestAmount;
+  // Calculate the difference between the two largest output amounts
+  const difference = largestAmount - secondLargestAmount;
 
-  let halfOfSecondLargestAmount = secondLargestAmount / 2;
+  // Get half of the second largest output
+  const halfOfSecondLargestAmount = secondLargestAmount / 2;
 
-
+  // If the difference is less than the half of the second largest output, then we can't peel it
   if (difference < halfOfSecondLargestAmount) {
     return response;
-  } 
+  }
 
-  let vout:number = -1;
-  for(let i = 0; i< outputs.length; i++){
-
-    if(outputs[i].value == largestAmount){
-      vout = i
+  // Find the index of the largest output
+  let changeOutputIndex = -1;
+  for (let i = 0; i < outputs.length; i++) {
+    if (outputs[i].value === largestAmount) {
+      changeOutputIndex = i;
+      break;
     }
   }
 
+  // Set the response status to true and the index to the index of the largest output
   response.status = true;
-  response.index = vout;
-  return response;
+  response.index = changeOutputIndex;
 
-}
+  // Return the response
+  return response;
+};

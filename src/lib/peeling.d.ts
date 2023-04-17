@@ -1,5 +1,6 @@
-export interface peelingTransactionResponse {
+export interface PeelingTransactionResponse {
     status: boolean;
     index: number;
+    error?: string;
 }
-export declare const peelingTransaction: (psbtBase64: string) => peelingTransactionResponse;
+export declare const peelingTransaction: (psbtBase64: string) => PeelingTransactionResponse;
