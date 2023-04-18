@@ -1,6 +1,7 @@
 import * as bitcoin from 'bitcoinjs-lib';
 import { PsbtInput } from 'bip174/src/lib/interfaces';
 import { decodePsbt } from '../common/decode_psbt';
+import { getAddress } from '../common/get_address';
 
 // Define Check Address Reuse response
 export interface AddressReuseResponse {
@@ -45,7 +46,7 @@ export const checkAddressReuse  = (psbtBase64:string):AddressReuseResponse =>{
     const tx = serializedTx ? bitcoin.Transaction.fromHex(serializedTx) : undefined ;
 
     // Convert the scriptPubKey of the input UTXO to an address
-    const address: string = tx? bitcoin.address.fromOutputScript(tx.outs[vout].script) : "";
+    const address: string = tx ? getAddress(tx.outs[vout].script) : "";
     inputsAddresses.push(address);
   }
 
@@ -53,7 +54,7 @@ export const checkAddressReuse  = (psbtBase64:string):AddressReuseResponse =>{
   const outputs = psbt.txOutputs;
 
   const outputsAddress = outputs.map(output => {
-    return bitcoin.address.fromOutputScript(output.script)
+    return getAddress(output.script)
   })
 
   // Check for address reuse
