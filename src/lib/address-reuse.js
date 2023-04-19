@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkAddressReuse = void 0;
 const bitcoin = require("bitcoinjs-lib");
 const decode_psbt_1 = require("../common/decode_psbt");
+const get_address_1 = require("../common/get_address");
 const checkAddressReuse = (psbtBase64) => {
     const reusedAddressAndInputs = [];
     // Decode the base64-encoded PSBT
@@ -27,13 +28,13 @@ const checkAddressReuse = (psbtBase64) => {
         // Decode the serialied transaction
         const tx = serializedTx ? bitcoin.Transaction.fromHex(serializedTx) : undefined;
         // Convert the scriptPubKey of the input UTXO to an address
-        const address = tx ? bitcoin.address.fromOutputScript(tx.outs[vout].script) : "";
+        const address = tx ? (0, get_address_1.getAddress)(tx.outs[vout].script) : "";
         inputsAddresses.push(address);
     }
     // Get the transaction's outputs address
     const outputs = psbt.txOutputs;
     const outputsAddress = outputs.map(output => {
-        return bitcoin.address.fromOutputScript(output.script);
+        return (0, get_address_1.getAddress)(output.script);
     });
     // Check for address reuse
     for (let i = 0; i < inputsAddresses.length; i++) {

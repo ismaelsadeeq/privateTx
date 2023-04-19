@@ -77,7 +77,7 @@ describe("Test get address type", ()=>{
     assert.deepStrictEqual(response,result);
   })
 
-  it("bech32 testnet regtest address string", ()=>{
+  it("bech32 mainet P2WPKH address string", ()=>{
     const address = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4";
     const response = getAddressType(address);
     const result = {
@@ -87,7 +87,7 @@ describe("Test get address type", ()=>{
     assert.deepStrictEqual(response,result);
   })
 
-  it("bech32 testnet regtest address string", ()=>{
+  it("bech32 regtest P2WPKH address string", ()=>{
     const address = "bcrt1qp09zelfkrlgs9lwztcpa9k62888nka9qmju0v2";
     const response = getAddressType(address);
     const result = {
@@ -96,7 +96,7 @@ describe("Test get address type", ()=>{
     }
     assert.deepStrictEqual(response,result);
   })
-  it("bech32 testnet signet address string", ()=>{
+  it("bech32 signet P2WPKH address string", ()=>{
     const address = "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx";
     const response = getAddressType(address);
     const result = {
