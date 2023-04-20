@@ -11,7 +11,7 @@ const peelingTransaction = (psbtBase64) => {
     // DecodePSBT
     const decodedPsbt = (0, decode_psbt_1.decodePsbt)(psbtBase64);
     // Error check  
-    if (!decodedPsbt.status && !!decodedPsbt.data) {
+    if (!decodedPsbt.status && !decodedPsbt.data) {
         response.error = decodedPsbt.error;
         return response;
     }

@@ -19,6 +19,7 @@
   ],
   "exclude": [
       "**/*.spec.ts",
-      "node_modules/**/*"
+      "node_modules/**/*",
+      "Readme.md"
   ]
 }

@@ -17,7 +17,7 @@ export const peelingTransaction = (psbtBase64: string): PeelingTransactionRespon
   // DecodePSBT
   const decodedPsbt = decodePsbt(psbtBase64);
   // Error check  
-  if(!decodedPsbt.status && ! !decodedPsbt.data) {
+  if(!decodedPsbt.status && !decodedPsbt.data) {
     response.error = decodedPsbt.error;
     return response;
   }
