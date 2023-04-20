@@ -6,6 +6,7 @@ const peeling_1 = require("./peeling");
 const address_reuse_1 = require("./address-reuse");
 const decode_psbt_1 = require("../common/decode_psbt");
 const get_address_type_1 = require("../common/get_address_type");
+const get_address_1 = require("../common/get_address");
 exports.SATOSHI = 100000000;
 const NO_PAYMENT_OUTPUTS = 0;
 const detectChange = (psbtBase64) => {
@@ -99,13 +100,13 @@ const getChangeOutputsFromSameScriptType = (psbt) => {
         // Decode the serialied transaction
         let tx = serializedTx && bitcoin.Transaction.fromHex(serializedTx);
         // convert the scriptpubkey of the input UTXO to an address
-        let address = tx ? bitcoin.address.fromOutputScript(tx.outs[vout].script) : "";
+        let address = tx ? (0, get_address_1.getAddress)(tx.outs[vout].script) : "";
         inputAddresses.push(address);
     }
     // Get the transactions outputs addresses
     const outputs = psbt.txOutputs;
     const outputAddresses = outputs.map(output => {
-        return bitcoin.address.fromOutputScript(output.script);
+        return (0, get_address_1.getAddress)(output.script);
     });
     // Initialize the address type variable
     let inputsAddressType = "";
@@ -174,21 +175,35 @@ const getOutputGreaterThanAllInputs = (psbt) => {
     // Get the transactions outputs addresses
     const outputs = psbt.txOutputs;
     const outputValues = outputs.map(output => output.value);
-    // Find the maximum input and output values
+    // Sort input and output values in ascending order
+    inputValues.sort((a, b) => a - b);
+    outputValues.sort((a, b) => a - b);
+    // Find the maximum input value
     const maxInput = Math.max(...inputValues);
-    const maxOutput = Math.max(...outputValues);
-    // Check if any output is greater than all inputs
-    const isOutputGreaterThanAllInputs = maxOutput > maxInput;
-    if (isOutputGreaterThanAllInputs) {
-        // Find the index of the output with the maximum value
+    // Find the index of the last output value that is less than the max input value
+    let lastIndex = -1;
+    for (let i = 0; i < outputValues.length; i++) {
+        if (outputValues[i] > maxInput) {
+            lastIndex = i - 1;
+        }
+    }
+    // Create an array to store the unique output values
+    const values = [];
+    for (let i = 0; i <= lastIndex; i++) {
+        values.push(outputValues[i]);
+    }
+    // Loop through the unique output values and find the corresponding output index
+    for (let value of values) {
         for (let i = 0; i < outputs.length; i++) {
-            if (maxOutput == outputs[i].value) {
-                response.status = true;
-                response.heuristic = "Output greater than all inputs";
+            // If the value matches an output value and the output index is not already in the response, add it to the response
+            if (value == outputs[i].value && response.changeOutputIndices.findIndex(val => val == i) == -1) {
                 response.changeOutputIndices.push(i);
-                break;
             }
         }
+    }
+    if (response.changeOutputIndices.length > 0) {
+        response.status = true;
+        response.heuristic = "Output greater than all inputs";
     }
     return response;
 };
