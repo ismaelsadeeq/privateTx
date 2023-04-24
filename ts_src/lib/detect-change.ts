@@ -150,7 +150,7 @@ const getChangeOutputsFromSameScriptType = (psbt: bitcoin.Psbt):DetectChangeResp
   // Loop through all the input addresses to find type
   for(const address of inputAddresses) {
     const currentInputAddressType = getAddressType(address);
-    if (inputsAddressType != "" && inputsAddressType != currentInputAddressType.data) {
+    if (inputsAddressType != "" && inputsAddressType != currentInputAddressType.data || !currentInputAddressType.status) {
       return response;
     }
     inputsAddressType = currentInputAddressType.data!;
@@ -227,6 +227,9 @@ const getOutputGreaterThanAllInputs = (psbt: bitcoin.Psbt):DetectChangeResponse 
       inputValues.push(tx.outs[vout].value)
     }
   }
+  // Ensure PSBT is processed and the amounts are added
+  // Else return response
+  if (inputValues.length === 0) return response;
   // Get the transactions outputs addresses
   const outputs = psbt.txOutputs;
   const outputValues = outputs.map(output => output.value);
@@ -279,10 +282,8 @@ const getNonRoundValueOutputs = (psbt: bitcoin.Psbt):DetectChangeResponse=>{
 
   // Loop through all outputs to and add a round output value to the set
   for(let i = 0; i< outputs.length; i++){
-
     // Get the value in BTC 
     const btcValue = outputs[i].value / SATOSHI;
-
     // Check if it is round
     if (btcValue % 1 == 0){
       roundOutputs.add(outputs[i].value);
@@ -297,7 +298,6 @@ const getNonRoundValueOutputs = (psbt: bitcoin.Psbt):DetectChangeResponse=>{
       changeOutputIndices: [],
     };
   }
-
   // Add the indices of all non round outputs as change outputs
   for (let i = 0; i < outputs.length;i++){
     if (roundOutputs.has(outputs[i].value) === false) {
