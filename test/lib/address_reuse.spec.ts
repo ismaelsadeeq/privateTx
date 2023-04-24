@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import {describe, it} from 'mocha';
+import { describe, it } from 'mocha';
 import { checkAddressReuse } from '../../src';
 
 describe('Address Reuse', () => {
@@ -14,7 +14,7 @@ describe('Address Reuse', () => {
       error:"Invalid PSBT string"
     };
     const result = checkAddressReuse(psbt);
-    assert.deepStrictEqual(result,response);
+    assert.deepStrictEqual(result, response);
   })
   it("PSBT string without reuse", () => {
     
@@ -25,7 +25,7 @@ describe('Address Reuse', () => {
       data:[]
     };
     const result = checkAddressReuse(psbt);
-    assert.deepStrictEqual(result,response);
+    assert.deepStrictEqual(result, response);
   })
 
   it("PSBT string with reuse", () => {
@@ -42,7 +42,7 @@ describe('Address Reuse', () => {
       ]
     };
     const result = checkAddressReuse(psbt);
-    assert.deepStrictEqual(result,response);
+    assert.deepStrictEqual(result, response);
   })
   
   it("PSBT with OP_RETURN output that is not processed", () => {
@@ -52,7 +52,7 @@ describe('Address Reuse', () => {
       data:[]
     }
     const result = checkAddressReuse(psbt);
-    assert.deepStrictEqual(result,response)
+    assert.deepStrictEqual(result, response)
   })
   it("PSBT with P2TR output that is not processed", () => {
     const psbt = "cHNidP8BAO4CAAAAA7Qi7ef0E6AD6g9Bt3wyoscHkmxLEC5h3Ba8cmPSQ/4sAAAAAAD9////IqQqb5nXIPMqqsrPKqqM9EE/eX9gkZKUAy+fYMdXmkYAAAAAAP3////QRU3Xxh602opM72kygIRMSblXBjkRBEtaTJPmuBmiQAAAAAAA/f///wMAZc0dAAAAABYAFNb4eJD53mxJ8Ru5hiMCUxXal0g+APIFKgEAAAAWABQ71TsKSsxnTrRIXJ4LZAegWU1xlYB00hoAAAAAIlEgYLkNmG8lbNqEXf+I5magfYfc5xOelIeFrp5VLlc6D5IAAAAAAAAAAAAAAA==";
@@ -61,7 +61,7 @@ describe('Address Reuse', () => {
       data:[]
     }
     const result = checkAddressReuse(psbt);
-    assert.deepStrictEqual(result,response)
+    assert.deepStrictEqual(result, response)
   })
 
 })

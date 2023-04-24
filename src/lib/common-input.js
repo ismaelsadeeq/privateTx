@@ -31,6 +31,10 @@ const commonInputs = (psbtBase64) => {
             inputAmounts.push(tx.outs[vout].value);
         }
     }
+    // Ensure PSBT is processed and the amounts are added
+    // Else return false
+    if (inputAmounts.length === 0)
+        return false;
     // Get the amount of the outputs
     const outputAmounts = outputs.map(output => output.value);
     // Sort the inputs and outputs in ascending order

@@ -113,7 +113,7 @@ const getChangeOutputsFromSameScriptType = (psbt) => {
     // Loop through all the input addresses to find type
     for (const address of inputAddresses) {
         const currentInputAddressType = (0, get_address_type_1.getAddressType)(address);
-        if (inputsAddressType != "" && inputsAddressType != currentInputAddressType.data) {
+        if (inputsAddressType != "" && inputsAddressType != currentInputAddressType.data || !currentInputAddressType.status) {
             return response;
         }
         inputsAddressType = currentInputAddressType.data;
@@ -172,6 +172,10 @@ const getOutputGreaterThanAllInputs = (psbt) => {
             inputValues.push(tx.outs[vout].value);
         }
     }
+    // Ensure PSBT is processed and the amounts are added
+    // Else return response
+    if (inputValues.length === 0)
+        return response;
     // Get the transactions outputs addresses
     const outputs = psbt.txOutputs;
     const outputValues = outputs.map(output => output.value);
