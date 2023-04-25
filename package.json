@@ -1,5 +1,5 @@
 {
-  "name": "privatetx",
+  "name": "privatetx-lib",
   "version": "1.0.0",
   "description": "A chain Analysis library",
   "main": "./src/index.js",
