@@ -28,7 +28,7 @@ $ npm install privatetx-lib
 ***1. Address Reuse***
 
 ```
-import { checkAddressReuse } from "privatetx";
+import { checkAddressReuse } from "privatetx-lib";
 
 const transactionPsbt = "cHNidP8BAHUCAAAAASaBcTce3/KF6Tet7qSze3gADA.....";
 
@@ -47,7 +47,7 @@ The output of this function includes:
 ***2. Common Inputs***
 
 ```
-import { commonInputs } from "privatetx";
+import { commonInputs } from "privatetx-lib";
 
 const transactionPsbt = "cHNidP8BAO4CAAAAA7.....";
 
@@ -61,7 +61,7 @@ In the above example, the `commonInputs` function is used to check if the inputs
 
 ***3. Detect Change Outputs***
 ```
-import { detectChange } from "privatetx";
+import { detectChange } from "privatetx-lib";
 
 const transactionPsbt = "cHNidP8BAO4CAAAAA7.....";
 
@@ -81,7 +81,7 @@ In this particular example, the output indicates that change outputs were detect
 
 ***3. Peeling Transaction***
 ```
-import { peelingTransaction } from "privatetx";
+import { peelingTransaction } from "privatetx-lib";
 
 const transactionPsbt = "cHNidP8BAO4CAAAAA7Qi7ef.....";
 
