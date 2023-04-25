@@ -1,6 +1,6 @@
 {
   "name": "privatetx-lib",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A chain Analysis library",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
