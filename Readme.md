@@ -17,7 +17,7 @@ To ensure privacy and avoid detection by chain analysis tools, it is essential t
 ### Installation Guide
 
 ```bash
-$ npm install privatetx
+$ npm install privatetx-lib
 ```
 
 ## **Examples**
