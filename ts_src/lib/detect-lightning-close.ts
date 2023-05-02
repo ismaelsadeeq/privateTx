@@ -10,6 +10,8 @@ export interface DetectLightningChannelCloseResponse {
 }
 
 const OP_0 = "OP_0";
+const OP_2 = "52";
+const OP_CHECKMULTISIG = "ae";
 
 // Function to detect a 2-of-2 multisig input in legacy format
 const detectLegacy2Of2Multisig = (scriptSig: string): boolean => {
@@ -33,9 +35,33 @@ const detectLegacy2Of2Multisig = (scriptSig: string): boolean => {
 };
 
 // Function to detect a 2-of-2 multisig input in witness format
-const detect2Of2Multisig = (scriptSig:string[]):boolean =>{
-  // Not implemented yet
-  return scriptSig.length < 0 ;
+const detect2Of2Multisig = (witness:string[]):boolean =>{
+
+  const witnessLength = 4;
+  // Ensure the witness length is witnessLength and the first value is empty string
+  if( witness.length !== witnessLength || witness[0] !== ""){
+    return false;
+  }
+
+  const signature = witness[3];
+  const n  = signature.length;
+
+  // Ensure the witness program is two of two multisig.
+
+  // check if the first opcode  is pushing two to the stack
+  if (signature.slice(0, 2) !== OP_2){
+    return false;
+  }
+  // Check if the last opcode is pushing two to the stacck
+  if (signature.slice(n-4, n-2) !== OP_2){
+    return false
+  }  
+  // check if the last opcode OP_CHECKMULTISIG
+  if (signature.slice(n-2, n) !== OP_CHECKMULTISIG){
+    return false
+  }
+
+  return true;
 }
 
 // Function to detect lightning channel close inputs
