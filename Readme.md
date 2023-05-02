@@ -8,6 +8,7 @@ Given a transaction it provides heuristics information on:
   -  **Common Inputs:** detect if inputs in a transaction are likely to come from the same wallet.
   -  **Change Outputs Detection:** provides indices of all change outputs in a transaction.
   -  **Peeled Transaction:** determine if a transaction is **peeled** and provide the payment output index and the change output index.
+  - **Detect lightning channel closing input** given a transaction returns all inputs that are likely to be a lightning channel closing transaction input
 
 ## Usage
 The library is built to improve privacy for Bitcoin users by providing a tool for identifying potential privacy leaks. It can be used by developers building more privacy-preserving applications or by researchers analyzing the privacy properties of the Bitcoin network. With its comprehensive analysis capabilities, PrivateTx offers a valuable tool for anyone looking to better understand the privacy implications of Bitcoin transactions
@@ -94,6 +95,32 @@ console.log(transactionIsPeeled);
 The output of this function is an object with a status property that is `true` if the transaction  specified in `transactionPsbt` is peeled, and `false` otherwise. Additionally, if the transaction is peeled, the object will contain an index property that indicates the index of the change output, where as all other outputs in the transaction are payments.
 
 The example output is an object with a status property that is `true`, which means the transaction is peeled, and the change output index that is 2 (which means the the third output).
+
+***4. Detect Lightning channel close inputs***
+
+### Transaction input format
+**Base 64 PSBT or a raw Transaction hex**
+```
+import { detectLightningChannelClosePsbt, detectLightningChannelClose  } from "privatetx-lib";
+
+const transactionPsbt = "cHNidP8BAO4CAAAAA7Qi7ef.....";
+
+const transactionHex = "01000000000101489de8818d4588ca7b11df95eadf3bbd6612df9e31c0e793d2f853a9626fbdc60300000000fffffff";
+
+const closingChannelInputs = detectLightningChannelClosePsbt(transactionPsbt);
+
+const closingChannelInputsTransactionHex = detectLightningChannelClose(transactionPsbt)
+
+console.log(closingChannelInputs);
+// { status: true, inputs: [ 0 ] }
+
+console.log(closingChannelInputsTransactionHex);
+// { status: true, inputs: [ 0 ] }
+```
+
+The output of this function is an object with a `status` property that is `true` if the specified transaction has Lightning channel closing inputs and `false` otherwise. Additionally, the `inputs` key will contain an array of the indexes of the inputs that are Lightning closing inputs, where all other inputs are not Lightning closing inputs.
+
+In the example output above, the status property is `true`, which indicates that the transaction has at least one Lightning channel closing input, and the first input is a Lightning channel closing input.
 
 
 ### Tests
