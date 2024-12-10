@@ -58,6 +58,12 @@ describe('Get Address from script buffer',  ()=> {
     assert.deepStrictEqual(response,result)
   })
 
-
+   // New test for Pay-To-Anchor (P2A) script buffer
+  it("P2A script buffer", ()=>{
+    const script = Buffer.from('6a4c4f7065726174696f6e20416e63686f72', 'hex'); // Example P2A script
+    const response = getAddress(script);
+    const result = script.toString('hex'); // Assuming getAddress returns the script as hex for P2A
+    assert.deepStrictEqual(response, result);
+  })
 
 })
