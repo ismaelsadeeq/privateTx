@@ -73,14 +73,14 @@ console.log(changeOutputs);
 ```
 The output of the function is an object with three properties:
 
-  status: a boolean that indicates whether change outputs were detected (true) or not (false).
-  changeOutputIndices: an array of integers representing the indices of the detected change outputs.
-  heuristic: a string that provides information on the heuristic used to detect the change outputs. In this example, the heuristic used is "Different output script type".
+  * **status:** a boolean that indicates whether change outputs were detected (true) or not (false).
+  * **changeOutputIndices:** an array of integers representing the indices of the detected change outputs.
+  * **heuristic:** a string that provides information on the heuristic used to detect the change outputs. In this example, the heuristic used is "Different output script type".
   The heuristics used by this functions are **Address reuse**, **Different output script type** , **Output greater than all inputs**, **Non-round number outputs** , **Largest output**
  
 In this particular example, the output indicates that change outputs were detected (status: true) and that the only detected change output is at index 0 (changeOutputIndices: [ 0 ]). The heuristic used to detect the change outputs was "Different output script type".
 
-***3. Peeling Transaction***
+***4. Peeling Transaction***
 ```
 import { peelingTransaction } from "privatetx-lib";
 
@@ -96,7 +96,7 @@ The output of this function is an object with a status property that is `true` i
 
 The example output is an object with a status property that is `true`, which means the transaction is peeled, and the change output index that is 2 (which means the the third output).
 
-***4. Detect Lightning channel close inputs***
+***5. Detect Lightning channel close inputs***
 
 ### Transaction input format
 **Base 64 PSBT or a raw Transaction hex**
